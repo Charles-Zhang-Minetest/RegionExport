@@ -33,12 +33,24 @@ local function count(base, pattern)
 end
 
 local function dumpRegion(x1, y1, z1, x2, y2, z2, fileName)
+  -- Get file path
+  local basePath = minetest.get_worldpath()
+  local folderPath = basePath.."/regions/"
+  local filePath = folderPath..fileName..".re"
+  -- Create folder (in case it doesn't exist)
+  minetest.mkdir(folderPath)
+  -- Open file ready
+  local file = io.open(filePath, "w")
+  -- Write high level region information
+  file:write("SizeX: "..(math.abs(x2-x1)+1).."\n")
+  file:write("SizeY: "..(math.abs(y2-y1)+1).."\n")
+  file:write("SizeZ: "..(math.abs(z2-z1)+1).."\n")
+  file:write("Nodes: \n")
   -- Get Vox Manip
   local p1 = {x=x1, y=y1, z=z1}
   local p2 = {x=x2, y=y2, z=z2}
   local manip = minetest.get_voxel_manip(p1, p2)
   -- Gather data
-  local content = ""
   local increX = 1
   local increY = 1
   local increZ = 1
@@ -48,25 +60,23 @@ local function dumpRegion(x1, y1, z1, x2, y2, z2, fileName)
   for z = z1, z2, increZ do
     for y = y1, y2, increY do
       for x = x1, x2, increX do
+        -- Get node
         local node = manip:get_node_at({x=x, y=y, z=z})
-        content = content
-          .."- Pos: ["..x..", "..y..", "..z.."]".."\n"
-          .."  Name: "..node.name.."\n"
+        -- Format output
+        local output = 
+          "  - Pos: ["..x..", "..y..", "..z.."]".."\n"..
+          "    Name: "..node.name.."\n"
+        -- Dump string content
+        file:write(output)
       end
     end
+    -- Progress report
+    print("Exporting... "..round((z-z1)/(z2-z1)*100).."%")
   end
-  -- Get file path
-  local basePath = minetest.get_worldpath()
-  local folderPath = basePath.."/regions/"
-  local filePath = folderPath..fileName..".re"
-  -- Create folder (in case it doesn't exist)
-  minetest.mkdir(folderPath)
-  -- Dump string content
-  local file = io.open(filePath, "w")
-  file:write(content)
+  -- Release resource
   file:close()
   -- Debug Pring
-  print("Saved to file: "..filePath)
+  print("Export finished!\nSaved to file: "..filePath)
 end
 
 minetest.register_chatcommand("re", {
