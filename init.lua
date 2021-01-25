@@ -20,7 +20,7 @@ For example:
       issue command: `/re (x0-4) (y0-4) (z0-4) (x1+5) (y1+5) (z1+5) r1`
 Notice:
   - No space is allowed in file name.
-  - Exported ".re" file is a ".yaml" file and can be opened with text editor
+  - Exported ".re" file is a ".yaml"-like file and can be opened with text editor
 ]])
 end
 
@@ -62,10 +62,12 @@ local function dumpRegion(x1, y1, z1, x2, y2, z2, fileName)
       for x = x1, x2, increX do
         -- Get node
         local node = manip:get_node_at({x=x, y=y, z=z})
+        -- Issue warning
+        if node.name == "ignore" then
+          print("`Ignore` block detected: ["..x..", "..y..", "..z.."]")
+        end
         -- Format output
-        local output = 
-          "  - Pos: ["..x..", "..y..", "..z.."]".."\n"..
-          "    Name: "..node.name.."\n"
+        local output = "  - Name: "..node.name.."\n"
         -- Dump string content
         file:write(output)
       end
